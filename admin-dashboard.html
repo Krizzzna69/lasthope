@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        h2 {
+            text-align: center;
+            color: #4CAF50;
+        }
+
+        #user-list {
+            width: 80%;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .user {
+            background-color: #fff;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .user p {
+            margin: 0;
+        }
+
+        button {
+            padding: 8px 16px;
+            margin: 0 5px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background-color 0.3s ease;
+        }
+
+        .approve {
+            background-color: #4CAF50;
+            color: white;
+        }
+
+        .disapprove {
+            background-color: #f44336;
+            color: white;
+        }
+
+        button:hover {
+            opacity: 0.8;
+        }
+
+        .user-location {
+            font-size: 14px;
+            color: #555;
+        }
+    </style>
+</head>
+<body>
+    <div id="user-list">
+        <h2>Approve Users</h2>
+        <!-- Users will be populated here -->
+    </div>
+
+    <script>
+        // Fetch users and display them with approval buttons
+        fetch('https://maps-project.onrender.com/admin/get-users')
+            .then(response => response.json())
+            .then(users => {
+                const userList = document.getElementById('user-list');
+                users.forEach(user => {
+                    const userDiv = document.createElement('div');
+                    userDiv.className = 'user';
+                    userDiv.innerHTML = `
+                        <div>
+                            <p><strong>${user.username}</strong></p>
+                            <p>Approved: ${user.isApproved ? 'Yes' : 'No'}</p>
+                            <p class="user-location">Location: ${user.location ? `${user.location.lat}, ${user.location.lon}` : 'N/A'}</p>
+                        </div>
+                        <div>
+                            <button class="approve" onclick="approveUser('${user.username}', true)">Approve</button>
+                            <button class="disapprove" onclick="approveUser('${user.username}', false)">Disapprove</button>
+                        </div>
+                    `;
+                    userList.appendChild(userDiv);
+                });
+            })
+            .catch(error => console.error('Error fetching users:', error));
+
+        function approveUser(username, approve) {
+            fetch('https://maps-project.onrender.com/admin/approve-user', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ username, approve }),
+            })
+            .then(response => response.json())
+            .then(data => alert(data.message))
+            .catch(error => console.error('Error approving user:', error));
+        }
+    </script>
+</body>
+</html>

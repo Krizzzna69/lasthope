@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Offsite Work Request</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        .container {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            width: 400px;
+        }
+
+        h2 {
+            text-align: center;
+            color: #333;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 8px;
+            box-sizing: border-box;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+        }
+
+        .form-group button {
+            width: 100%;
+            padding: 10px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        .form-group button:hover {
+            background-color: #45a049;
+        }
+
+        .error {
+            color: red;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Offsite Work Request</h2>
+    <div class="form-group">
+        <label for="fromTime">From Time</label>
+        <input type="datetime-local" id="fromTime" required>
+    </div>
+    <div class="form-group">
+        <label for="leavingTime">Leaving Time</label>
+        <input type="datetime-local" id="leavingTime" required>
+    </div>
+    <div class="form-group">
+        <label for="location">Location</label>
+        <input type="text" id="location" required>
+    </div>
+    <div class="form-group">
+        <button onclick="submitOffsiteWork()">Submit</button>
+    </div>
+    <div class="error" id="errorMessage"></div>
+</div>
+
+<script>
+    function submitOffsiteWork() {
+    const fromTime = document.getElementById('fromTime').value;
+    const leavingTime = document.getElementById('leavingTime').value;
+    const location = document.getElementById('location').value;
+
+    if (!fromTime || !leavingTime || !location) {
+        alert('Please fill out all fields.');
+        return;
+    }
+
+    const offsiteData = {
+        fromTime,
+        leavingTime,
+        location,
+        username: localStorage.getItem('username'), // Assuming you're storing the username in localStorage
+    };
+
+    fetch('https://maps-project.onrender.com/offsite-request', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(offsiteData),
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('Offsite work request submitted successfully!');
+            // Redirect or update UI as needed
+        } else {
+            alert('Error: ' + data.message);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+    });
+}
+
+</script>
+
+</body>
+</html>
