@@ -15,12 +15,17 @@
         #buttonContainer {
             position: absolute;
             top: 10px;
-            left: 10px;
+            right: 20px;
             z-index: 5;
+            
+            color: white;
+            padding: 10px;
+            border-radius: 5px;
             display: flex;
             flex-direction: column;
+       
         }
-        .action-button, #myActivityButton, #hideMapButton {
+        .action-button, #myActivityButton, #hideMapButton, #offsiteWorkButton, #onsiteWorkButton {
             margin-bottom: 10px;
             padding: 10px;
             background-color: #6a11cb;
@@ -85,10 +90,11 @@
     <div id="buttonContainer">
         <button id="offsiteWorkButton" onclick="setWorkMode('offsite')">Offsite Work</button>
         <button id="onsiteWorkButton" onclick="setWorkMode('onsite')">Onsite Work</button>
+        
     </div>
     <div id="footer">
-        <button class="action-button" onclick="punchIn()">Check In</button>
-        <button class="action-button" onclick="punchOut()">Check Out</button>
+        <button class="action-button" id='checkInButton' onclick="punchIn()">Check In</button>
+        <button class="action-button" id='checkOutButton' onclick="punchOut()">Check Out</button>
         <button id="myActivityButton" onclick="toggleTable()">My Activity</button>
         <button id="hideMapButton" onclick="toggleMap()">Hide Map</button>
     </div>
@@ -217,20 +223,7 @@
             );
             infoWindow.open(map);
         }
-        function setWorkMode(mode) {
-            const checkInButton = document.getElementById('checkInButton');
-            const checkOutButton = document.getElementById('checkOutButton');
-            
-            if (mode === 'offsite') {
-                checkInButton.style.display = 'none';
-                checkOutButton.style.display = 'none';
-                alert("You have selected Offsite Work. Check In/Out buttons are hidden.");
-            } else if (mode === 'onsite') {
-                checkInButton.style.display = 'block';
-                checkOutButton.style.display = 'block';
-                alert("You have selected Onsite Work. Check In/Out buttons are visible.");
-            }
-        }
+        
 
         function showAttendanceMarkedPopup() {
             const popup = document.getElementById("attendancePopup");
@@ -309,7 +302,21 @@
                 document.getElementById('hideMapButton').textContent = 'Hide Map';
             }
         }
-
+        function setWorkMode(mode) {
+            const checkInButton = document.getElementById('checkInButton');
+            const checkOutButton = document.getElementById('checkOutButton');
+            console.log(checkInButton,checkOutButton);
+            
+            if (mode == 'offsite') {
+                checkInButton.style.display = 'block';
+                checkOutButton.style.display = 'block';
+                alert("You have selected Offsite Work. Check In/Out buttons are visible.");
+            } else if (mode == 'onsite') {
+                checkInButton.style.display = 'none';
+                checkOutButton.style.display = 'none';
+                alert("You have selected Onsite Work. Check In/Out buttons are hidden.");
+            }
+        }
         function toggleMap() {
             const mapDiv = document.getElementById('map');
             if (mapDiv.style.display === 'none') {
@@ -368,7 +375,7 @@
         document.addEventListener("DOMContentLoaded", () => {
             username = localStorage.getItem('username');
             if (!username) {
-                window.location.href = 'login.html';
+                window.location.href = 'INDEX.html';
             } else {
                 document.getElementById('usernameDisplay').textContent = `Logged in as: ${username}`;
             }
