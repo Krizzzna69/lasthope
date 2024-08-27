@@ -31,6 +31,8 @@ const offsiteRequestSchema = new Schema({
   } // New field to store the current location
 });
 
+const OffsiteRequest = mongoose.model('OffsiteRequest', offsiteRequestSchema);
+
 const userSchema = new mongoose.Schema({
   username: String,
   password: String,
@@ -46,7 +48,7 @@ const userSchema = new mongoose.Schema({
   offsiteRequests: [offsiteRequestSchema] // New field for offsite work requests
 });
 const User = mongoose.model('User', userSchema);
-const OffsiteRequest = mongoose.model('OffsiteRequest', offsiteRequestSchema);
+
 // Admin credentials
 const adminCredentials = {
   username: 'admin', // Replace with your desired admin username
