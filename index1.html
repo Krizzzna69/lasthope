@@ -145,7 +145,7 @@
                 fillOpacity: 0.35,
                 map,
                 center: regionCenter,
-                radius: 10,
+                radius: 20,
             });
 
             // Create a marker to represent the user's current location
@@ -180,6 +180,7 @@
         console.log('User is within region, marking attendance.');
         showAttendanceMarkedPopup();
         hasMarkedAttendance = true;
+        let hasPunchedOut = true;
         punchIn(); // Punch in here
     }
 } else {
