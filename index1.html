@@ -176,21 +176,22 @@
                             regionCircle.getCenter()
                         );
                         if (distanceFromCenter <= regionCircle.getRadius()) {
-                    if (!hasMarkedAttendance) {
-                        console.log('User is within region, marking attendance.');
-                        showAttendanceMarkedPopup();
-                        hasMarkedAttendance = true;
-                        punchIn(); // Punch in here
-                    }
-                } else {
-                    if (hasMarkedAttendance && !hasPunchedOut) {
-                        console.log('User is outside the region, punching out.');
-                        punchOut();
-                        hasPunchedOut = true;
-                    }
-                }
+    if (!hasMarkedAttendance) {
+        console.log('User is within region, marking attendance.');
+        showAttendanceMarkedPopup();
+        hasMarkedAttendance = true;
+        punchIn(); // Punch in here
+    }
+} else {
+    if (hasMarkedAttendance && !hasPunchedOut) {
+        console.log('User is outside the region, punching out.');
+        punchOut();
+        hasPunchedOut = true;
+    }
+}
 
-
+ 
+                    },
                     () => {
                         handleLocationError(true, infoWindow, map.getCenter());
                     }
