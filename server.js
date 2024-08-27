@@ -18,7 +18,7 @@ mongoose.connect(mongoDBUri, { useNewUrlParser: true, useUnifiedTopology: true }
   .catch(err => console.error('MongoDB connection error:', err));
 
 // Define a User schema with location and approval fields
-const offsiteRequestSchema = new Schema({
+const offsiteRequestSchema = new mongoose.Schema({
   username: { type: String, required: true },  // Added field to associate request with a user
   fromTime: { type: Date, required: true },
   leavingTime: { type: Date, required: true },
