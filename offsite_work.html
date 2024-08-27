@@ -90,6 +90,9 @@
     <div class="form-group">
         <button onclick="submitOffsiteWork()">Submit</button>
     </div>
+    <div class="form-group">
+        <button onclick="checkApprovalStatus()">Check Approval Status</button>
+    </div>
     <div id="approvalSection" style="display: none;">
         <div class="form-group">
             <button id="panButton" onclick="panToCurrentLocation()">Pan to Current Location</button>
@@ -141,23 +144,27 @@
             });
         }
     }
-    function checkApprovalStatus() {
-    const username = localStorage.getItem('username');
 
+    function checkApprovalStatus() {
+    const username = localStorage.getItem('username'); // Assuming you're storing the username in localStorage
     fetch(`https://lasthope-khuj.onrender.com/check-approval-status?username=${username}`)
         .then(response => {
             if (!response.ok) {
-                return response.text().then(text => {
-                    throw new Error(`HTTP error! status: ${response.status} - ${text}`);
-                });
+                throw new Error('Network response was not ok');
             }
             return response.json();
         })
         .then(data => {
-            if (data.isApproved) {
-                document.getElementById('approvalSection').style.display = 'block';
-                initMap();
-                clearInterval(approvalCheckInterval);
+            if (data.success) {
+                if (data.isApproved) {
+                    document.getElementById('approvalSection').style.display = 'block';
+                    initMap();
+                } else {
+                    document.getElementById('errorMessage').textContent = 'Request not approved yet';
+                    document.getElementById('map').style.display = 'none';
+                }
+            } else {
+                document.getElementById('errorMessage').textContent = data.message || 'Unknown error';
             }
         })
         .catch(error => {
@@ -165,14 +172,6 @@
             document.getElementById('errorMessage').textContent = `Error: ${error.message}`;
         });
 }
-
-
-
-// Check approval status every 10 seconds (10000 milliseconds)
-const approvalCheckInterval = setInterval(checkApprovalStatus, 10000);
-
-// Initial check when the page loads
-document.addEventListener('DOMContentLoaded', checkApprovalStatus);
 
 
     function submitOffsiteWork() {
@@ -204,7 +203,6 @@ document.addEventListener('DOMContentLoaded', checkApprovalStatus);
         .then(data => {
             if (data.success) {
                 alert('Offsite work request submitted successfully!');
-                // Redirect or update UI as needed
             } else {
                 alert('Error: ' + data.message);
             }
@@ -213,9 +211,6 @@ document.addEventListener('DOMContentLoaded', checkApprovalStatus);
             console.error('Error:', error);
         });
     }
-
-    // Check approval status on page load
-    document.addEventListener('DOMContentLoaded', checkApprovalStatus);
 </script>
 <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyASAMgt4KkC1Hr4bbf8A8JBGwAcpwlAv6o&callback=initMap&v=weekly&libraries=geometry"></script>
 </body>

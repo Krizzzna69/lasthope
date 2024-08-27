@@ -344,24 +344,21 @@ app.post('/offsite-request', async (req, res) => {
   }
 });
 
-app.get('/check-approval-status', (req, res) => {
-  const { username } = req.query;
+app.get('/check-approval-status', async (req, res) => {
+  try {
+      const { username } = req.query;
+      // Fetch the offsite request status
+      const request = await OffsiteRequest.findOne({ username });
 
-  if (!username) {
-      return res.status(400).json({ success: false, message: 'Username is required' });
+      if (request) {
+          res.json({ success: true, isApproved: request.isApproved });
+      } else {
+          res.json({ success: false, message: 'Request not found' });
+      }
+  } catch (error) {
+      console.error('Error:', error);
+      res.status(500).json({ success: false, message: 'Server error' });
   }
-
-  OffsiteRequest.findOne({ username }, (err, request) => {
-      if (err) {
-          console.error('Database error:', err); // Log the error for debugging
-          return res.status(500).json({ success: false, message: 'Server error' });
-      }
-      if (!request) {
-          return res.status(404).json({ success: false, message: 'Request not found' });
-      }
-
-      return res.json({ success: true, isApproved: request.isApproved });
-  });
 });
 
 
