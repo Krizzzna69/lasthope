@@ -104,6 +104,8 @@
 
 <script>
     let map, userMarker;
+    const username = localStorage.getItem('username');
+    console.log(username);
 
     function initMap() {
         map = new google.maps.Map(document.getElementById('map'), {
@@ -146,7 +148,7 @@
     }
 
     function checkApprovalStatus() {
-    const username = localStorage.getItem('username'); // Assuming you're storing the username in localStorage
+     // Assuming you're storing the username in localStorage
     fetch(`https://lasthope-khuj.onrender.com/check-approval-status?username=${username}`)
         .then(response => {
             if (!response.ok) {
