@@ -177,22 +177,22 @@
                         );
 
                         if (distanceFromCenter <= regionCircle.getRadius()) {
-                            if (!hasMarkedAttendance) {
-                                showAttendanceMarkedPopup();
-                                hasMarkedAttendance = true;
+                if (!hasMarkedAttendance) {
+                 showAttendanceMarkedPopup();
+                     hasMarkedAttendance = true;
 
-                                // Send attendance update request to the server
-                                
-                                const data = await response.json();
-                                if (data.success) {
-                                    console.log('Attendance updated:', data.attendance);
-                                    punchIn();
-                                } else {
-                                    console.error('Attendance update failed:', data.message);
-                                }
-                            }
-                        } else {
-                            // Automatically punch out if the user leaves the geofenced area
+            // Send attendance update request to the server
+            const data = await response.json(); // This line seems incorrect
+                    if (data.success) {
+                    console.log('Attendance updated:', data.attendance);
+                    punchIn(); // Punch in only if attendance update was successful
+                } else {
+                    console.error('Attendance update failed:', data.message);
+                }
+            }
+        }
+             else {
+                           
                             if (hasMarkedAttendance && !hasPunchedOut) {
                                 punchOut();
                                 hasPunchedOut = true;
@@ -230,32 +230,32 @@
         }
 
         function punchIn() {
-            if (!username) {
-                alert('Error: No username provided.');
-                return;
-            }
+    if (!username) {
+        alert('Error: No username provided.');
+        return;
+    }
 
-            const punchInTime = new Date().getTime();
+    const punchInTime = new Date().getTime();
 
-            fetch('https://lasthope-khuj.onrender.com/punch-in', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ username, punchInTime }),
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    alert('Punched In at ' + new Date(punchInTime).toLocaleTimeString());
-                } else {
-                    alert('Error: ' + data.message);
-                }
-            })
-            .catch(error => {
-                alert('An error occurred. Please try again.');
-            });
+    fetch('https://lasthope-khuj.onrender.com/punch-in', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ username, punchInTime }),
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('Punched In at ' + new Date(punchInTime).toLocaleTimeString());
+        } else {
+            alert('Error: ' + data.message);
         }
+    })
+    .catch(error => {
+        alert('An error occurred. Please try again.');
+    });
+}
 
         function punchOut() {
             if (!username) {
