@@ -108,28 +108,27 @@ app.get('/admin/dashboard', async (req, res) => {
   }
 });
 
-// Get all users for admin
-app.post('/offsite-request', async (req, res) => {
+app.get('/admin/offsite-requests', async (req, res) => {
   try {
-    const { fromTime, leavingTime, location, currentLocation, username } = req.body;
+    // Fetch users who have offsiteRequests
+    const users = await User.find({ 'offsiteRequests.0': { $exists: true } }).populate('offsiteRequests');
 
-    if (!username) {
-      return res.status(400).json({ success: false, message: 'Username is required' });
-    }
+    // Flatten and map the requests
+    const requests = users.flatMap(user => 
+      user.offsiteRequests.map(request => ({
+        username: user.username,
+        fromTime: request.fromTime,
+        leavingTime: request.leavingTime,
+        location: request.location,
+        isApproved: request.isApproved,
+        requestId: request._id
+      }))
+    );
 
-    const offsiteRequest = new OffsiteRequest({
-      username,
-      fromTime,
-      leavingTime,
-      location,
-      currentLocation
-    });
-
-    await offsiteRequest.save();
-    res.status(200).json({ success: true, message: 'Offsite work request submitted successfully!' });
+    res.json({ success: true, requests });
   } catch (error) {
-    console.error('Error saving offsite request:', error);
-    res.status(500).json({ success: false, message: 'Failed to submit offsite request' });
+    console.error('Error:', error);
+    res.status(500).json({ success: false, message: 'Server error' });
   }
 });
 
