@@ -25,7 +25,7 @@ const offsiteRequestSchema = new mongoose.Schema({
   submittedAt: { type: Date, default: Date.now },
   isApproved: { type: Boolean, default: null } // null = pending, true = approved, false = disapproved
 });
-
+const OffsiteRequest = mongoose.model('OffsiteRequest', offsiteRequestSchema)
 const userSchema = new mongoose.Schema({
   username: String,
   password: String,
@@ -109,25 +109,39 @@ app.get('/admin/dashboard', async (req, res) => {
 });
 
 // Get all users for admin
-app.get('/admin/offsite-requests', async (req, res) => {
+app.post('/offsite-request', async (req, res) => {
   try {
-      const users = await User.find({ 'offsiteRequests.0': { $exists: true } });
+    const { fromTime, leavingTime, location, username, currentLocation } = req.body;
 
-      const requests = users.map(user => {
-          return user.offsiteRequests.map(request => ({
-              username: user.username,
-              fromTime: request.fromTime,
-              leavingTime: request.leavingTime,
-              location: request.location,
-              isApproved: request.isApproved,
-              requestId: request._id
-          }));
-      }).flat();
+    if (!fromTime || !leavingTime || !location || !username) {
+      return res.status(400).json({ success: false, message: 'All fields are required' });
+    }
 
-      res.json({ success: true, requests });
+    // Find the user by username
+    const user = await User.findOne({ username });
+
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'User not found' });
+    }
+
+    // Create a new offsite request
+    const offsiteRequest = new OffsiteRequest({
+      fromTime,
+      leavingTime,
+      location,
+      currentLocation,
+      isApproved: null // Pending by default
+    });
+
+    // Save the offsite request and update the user's offsiteRequests
+    await offsiteRequest.save();
+    user.offsiteRequests.push(offsiteRequest);
+    await user.save();
+
+    res.status(201).json({ success: true, message: 'Offsite request submitted successfully' });
   } catch (error) {
-      console.error('Error:', error);
-      res.status(500).json({ success: false, message: 'Server error' });
+    console.error('Error submitting offsite request:', error);
+    res.status(500).json({ success: false, message: 'Failed to submit offsite request' });
   }
 });
 

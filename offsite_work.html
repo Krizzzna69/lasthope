@@ -184,42 +184,42 @@
 
 
 function submitOffsiteWork() {
-  const fromTime = document.getElementById('fromTime').value;
-  const leavingTime = document.getElementById('leavingTime').value;
-  const location = document.getElementById('location').value;
-  const username = localStorage.getItem('username'); // Ensure username is fetched
+    const fromTime = document.getElementById('fromTime').value;
+    const leavingTime = document.getElementById('leavingTime').value;
+    const location = document.getElementById('location').value;
 
-  if (!fromTime || !leavingTime || !location || !username) {
-    alert('Please fill out all fields.');
-    return;
-  }
-
-  const offsiteData = {
-    fromTime,
-    leavingTime,
-    location,
-    username,
-    currentLocation: userMarker ? userMarker.getPosition().toJSON() : null
-  };
-
-  fetch('https://lasthope-khuj.onrender.com/offsite-request', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(offsiteData),
-  })
-  .then(response => response.json())
-  .then(data => {
-    if (data.success) {
-      alert('Offsite work request submitted successfully!');
-    } else {
-      alert('Error: ' + data.message);
+    if (!fromTime || !leavingTime || !location) {
+        alert('Please fill out all fields.');
+        return;
     }
-  })
-  .catch(error => {
-    console.error('Error:', error);
-  });
+
+    const offsiteData = {
+        fromTime,
+        leavingTime,
+        location,
+        username: localStorage.getItem('username'),
+        currentLocation: userMarker ? userMarker.getPosition().toJSON() : null
+    };
+
+    fetch('https://lasthope-khuj.onrender.com/offsite-request', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(offsiteData),
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('Offsite work request submitted successfully!');
+        } else {
+            alert('Error: ' + data.message);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Failed to submit offsite request');
+    });
 }
 
 </script>
