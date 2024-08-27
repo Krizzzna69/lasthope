@@ -18,15 +18,16 @@ mongoose.connect(mongoDBUri, { useNewUrlParser: true, useUnifiedTopology: true }
   .catch(err => console.error('MongoDB connection error:', err));
 
 // Define a User schema with location and approval fields
-const offsiteRequestSchema = new mongoose.Schema({
+const offsiteRequestSchema = new Schema({
+  username: { type: String, required: true },  // Added field to associate request with a user
   fromTime: { type: Date, required: true },
   leavingTime: { type: Date, required: true },
   location: { type: String, required: true },
   submittedAt: { type: Date, default: Date.now },
   isApproved: { type: Boolean, default: null }, // null = pending, true = approved, false = disapproved
   currentLocation: {
-      lat: Number,
-      lon: Number
+    lat: Number,
+    lon: Number
   } // New field to store the current location
 });
 
@@ -45,7 +46,7 @@ const userSchema = new mongoose.Schema({
   offsiteRequests: [offsiteRequestSchema] // New field for offsite work requests
 });
 const User = mongoose.model('User', userSchema);
-
+const OffsiteRequest = mongoose.model('OffsiteRequest', offsiteRequestSchema);
 // Admin credentials
 const adminCredentials = {
   username: 'admin', // Replace with your desired admin username
@@ -318,46 +319,51 @@ app.get('/get-attendance', async (req, res) => {
 
 app.post('/offsite-request', async (req, res) => {
   try {
-      const { username, fromTime, leavingTime, location } = req.body;
+    const { fromTime, leavingTime, location, currentLocation, username } = req.body;
 
-      // Find the user by username
-      const user = await User.findOne({ username });
+    if (!username) {
+      return res.status(400).json({ success: false, message: 'Username is required' });
+    }
 
-      if (!user) {
-          return res.status(404).json({ success: false, message: 'User not found' });
-      }
+    const offsiteRequest = new OffsiteRequest({
+      username,
+      fromTime,
+      leavingTime,
+      location,
+      currentLocation
+    });
 
-      // Add the offsite request to the user's offsiteRequests array
-      user.offsiteRequests.push({
-          fromTime: new Date(fromTime),
-          leavingTime: new Date(leavingTime),
-          location
-      });
-
-      // Save the updated user document
-      await user.save();
-
-      res.json({ success: true, message: 'Offsite work request submitted successfully' });
+    await offsiteRequest.save();
+    res.status(200).json({ success: true, message: 'Offsite work request submitted successfully!' });
   } catch (error) {
-      console.error('Error:', error);
-      res.status(500).json({ success: false, message: 'Server error' });
+    console.error('Error saving offsite request:', error);
+    res.status(500).json({ success: false, message: 'Failed to submit offsite request' });
   }
 });
 
+
 app.get('/check-approval-status', async (req, res) => {
   try {
-      const { username } = req.query;
-      // Fetch the offsite request status
-      const request = await OffsiteRequest.findOne({ username });
+    const username = req.query.username;
+    
+    if (!username) {
+      return res.status(400).json({ success: false, message: 'Username is required' });
+    }
 
-      if (request) {
-          res.json({ success: true, isApproved: request.isApproved });
-      } else {
-          res.json({ success: false, message: 'Request not found' });
-      }
+    const request = await OffsiteRequest.findOne({ username }).sort({ submittedAt: -1 });
+
+    if (!request) {
+      return res.status(404).json({ success: false, message: 'No offsite request found' });
+    }
+
+    res.status(200).json({
+      success: true,
+      isApproved: request.isApproved,
+      message: 'Request status fetched successfully'
+    });
   } catch (error) {
-      console.error('Error:', error);
-      res.status(500).json({ success: false, message: 'Server error' });
+    console.error('Error fetching approval status:', error);
+    res.status(500).json({ success: false, message: 'Failed to fetch approval status' });
   }
 });
 
