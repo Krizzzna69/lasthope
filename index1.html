@@ -145,7 +145,7 @@
                 fillOpacity: 0.35,
                 map,
                 center: regionCenter,
-                radius: 20,
+                radius: 10,
             });
 
             // Create a marker to represent the user's current location
@@ -176,7 +176,7 @@
                             regionCircle.getCenter()
                         );
                         if (distanceFromCenter <= regionCircle.getRadius()) {
-    if (!hasMarkedAttendance) {
+        if (!hasMarkedAttendance) {
         console.log('User is within region, marking attendance.');
         showAttendanceMarkedPopup();
         hasMarkedAttendance = true;
