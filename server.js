@@ -43,10 +43,11 @@ const userSchema = new mongoose.Schema({
   lastCheckOutTime: String,
   totalWorkingHours: { type: Number, default: 0 },
   lastCheckInDate: String,
-  isApproved: { type: Boolean, default: false }, // New field to track admin approval status
+  isApproved: { type: Boolean, default: false },
   location: String,
-  offsiteRequests: [offsiteRequestSchema] // New field for offsite work requests
+  offsiteRequests: [{ type: Schema.Types.ObjectId, ref: 'OffsiteRequest' }] // Ensure this field exists
 });
+
 const User = mongoose.model('User', userSchema);
 
 // Admin credentials
@@ -114,23 +115,25 @@ app.get('/admin/dashboard', async (req, res) => {
 // Get all users for admin
 app.get('/admin/offsite-requests', async (req, res) => {
   try {
-      const users = await User.find({ 'offsiteRequests.0': { $exists: true } });
+    // Fetch users who have offsiteRequests
+    const users = await User.find({ 'offsiteRequests.0': { $exists: true } }).populate('offsiteRequests');
 
-      const requests = users.map(user => {
-          return user.offsiteRequests.map(request => ({
-              username: user.username,
-              fromTime: request.fromTime,
-              leavingTime: request.leavingTime,
-              location: request.location,
-              isApproved: request.isApproved,
-              requestId: request._id
-          }));
-      }).flat();
+    // Flatten and map the requests
+    const requests = users.flatMap(user => 
+      user.offsiteRequests.map(request => ({
+        username: user.username,
+        fromTime: request.fromTime,
+        leavingTime: request.leavingTime,
+        location: request.location,
+        isApproved: request.isApproved,
+        requestId: request._id
+      }))
+    );
 
-      res.json({ success: true, requests });
+    res.json({ success: true, requests });
   } catch (error) {
-      console.error('Error:', error);
-      res.status(500).json({ success: false, message: 'Server error' });
+    console.error('Error:', error);
+    res.status(500).json({ success: false, message: 'Server error' });
   }
 });
 
