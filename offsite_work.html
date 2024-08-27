@@ -143,17 +143,25 @@
     }
 
     function checkApprovalStatus() {
-        const username = localStorage.getItem('username'); // Assuming you're storing the username in localStorage
-        fetch(`https://lasthope-khuj.onrender.com/check-approval-status?username=${username}`)
-            .then(response => response.json())
-            .then(data => {
-                if (data.isApproved) {
-                    document.getElementById('approvalSection').style.display = 'block';
-                    initMap();
-                }
-            })
-            .catch(error => console.error('Error:', error));
-    }
+    const username = localStorage.getItem('username'); // Assuming you're storing the username in localStorage
+    fetch(`https://lasthope-khuj.onrender.com/check-approval-status?username=${username}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.isApproved) {
+                document.getElementById('approvalSection').style.display = 'block';
+                initMap();
+                clearInterval(approvalCheckInterval); // Stop checking once approved
+            }
+        })
+        .catch(error => console.error('Error:', error));
+}
+
+// Check approval status every 10 seconds (10000 milliseconds)
+const approvalCheckInterval = setInterval(checkApprovalStatus, 10000);
+
+// Initial check when the page loads
+document.addEventListener('DOMContentLoaded', checkApprovalStatus);
+
 
     function submitOffsiteWork() {
         const fromTime = document.getElementById('fromTime').value;
