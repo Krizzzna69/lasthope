@@ -18,22 +18,15 @@ mongoose.connect(mongoDBUri, { useNewUrlParser: true, useUnifiedTopology: true }
   .catch(err => console.error('MongoDB connection error:', err));
 
 // Define a User schema with location and approval fields
-const offsiteRequestSchema = new Schema({
+const offsiteRequestSchema = new mongoose.Schema({
   fromTime: { type: Date, required: true },
   leavingTime: { type: Date, required: true },
   location: { type: String, required: true },
   submittedAt: { type: Date, default: Date.now },
-  isApproved: { type: Boolean, default: null }, // null = pending, true = approved, false = disapproved
-  currentLocation: {
-    lat: Number,
-    lon: Number
-  }
+  isApproved: { type: Boolean, default: null } // null = pending, true = approved, false = disapproved
 });
 
-const OffsiteRequest = mongoose.model('OffsiteRequest', offsiteRequestSchema);
-
-// Define the User schema
-const userSchema = new Schema({
+const userSchema = new mongoose.Schema({
   username: String,
   password: String,
   attendance: { type: Number, default: 0 },
@@ -43,14 +36,15 @@ const userSchema = new Schema({
   lastCheckOutTime: String,
   totalWorkingHours: { type: Number, default: 0 },
   lastCheckInDate: String,
-  isApproved: { type: Boolean, default: false },
-  location: String,
-  offsiteRequests: [{ type: Schema.Types.ObjectId, ref: 'OffsiteRequest' }]
+  isApproved: { type: Boolean, default: false }, // New field to track admin approval status
+  location: {
+      lat: Number,
+      lon: Number
+  },
+  offsiteRequests: [offsiteRequestSchema] // New field for offsite work requests
 });
 
 const User = mongoose.model('User', userSchema);
-
-module.exports = { User, OffsiteRequest };
 
 // Admin credentials
 const adminCredentials = {
@@ -138,6 +132,7 @@ app.get('/admin/offsite-requests', async (req, res) => {
 });
 
 
+
 // Approve or disapprove a user
 app.post('/admin/approve-request', async (req, res) => {
   try {
@@ -164,6 +159,7 @@ app.post('/admin/approve-request', async (req, res) => {
       res.status(500).json({ success: false, message: 'Server error' });
   }
 });
+
 
 // Sign In endpoint
 app.post('/login', async (req, res) => {
