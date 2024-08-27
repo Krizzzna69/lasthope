@@ -115,25 +115,23 @@ app.get('/admin/dashboard', async (req, res) => {
 // Get all users for admin
 app.get('/admin/offsite-requests', async (req, res) => {
   try {
-    // Fetch users who have offsiteRequests
-    const users = await User.find({ 'offsiteRequests.0': { $exists: true } }).populate('offsiteRequests');
+      const users = await User.find({ 'offsiteRequests.0': { $exists: true } });
 
-    // Flatten and map the requests
-    const requests = users.flatMap(user => 
-      user.offsiteRequests.map(request => ({
-        username: user.username,
-        fromTime: request.fromTime,
-        leavingTime: request.leavingTime,
-        location: request.location,
-        isApproved: request.isApproved,
-        requestId: request._id
-      }))
-    );
+      const requests = users.map(user => {
+          return user.offsiteRequests.map(request => ({
+              username: user.username,
+              fromTime: request.fromTime,
+              leavingTime: request.leavingTime,
+              location: request.location,
+              isApproved: request.isApproved,
+              requestId: request._id
+          }));
+      }).flat();
 
-    res.json({ success: true, requests });
+      res.json({ success: true, requests });
   } catch (error) {
-    console.error('Error:', error);
-    res.status(500).json({ success: false, message: 'Server error' });
+      console.error('Error:', error);
+      res.status(500).json({ success: false, message: 'Server error' });
   }
 });
 
