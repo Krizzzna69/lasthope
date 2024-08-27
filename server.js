@@ -351,15 +351,23 @@ app.get('/check-approval-status', async (req, res) => {
       return res.status(400).json({ success: false, message: 'Username is required' });
     }
 
-    const request = await OffsiteRequest.findOne({ username }).sort({ submittedAt: -1 });
+    // Find the user
+    const user = await User.findOne({ username }).populate('offsiteRequests');
 
-    if (!request) {
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'User not found' });
+    }
+
+    // Find the latest offsite request
+    const latestRequest = user.offsiteRequests.sort((a, b) => b.submittedAt - a.submittedAt)[0];
+
+    if (!latestRequest) {
       return res.status(404).json({ success: false, message: 'No offsite request found' });
     }
 
     res.status(200).json({
       success: true,
-      isApproved: request.isApproved,
+      isApproved: latestRequest.isApproved,
       message: 'Request status fetched successfully'
     });
   } catch (error) {
@@ -367,6 +375,7 @@ app.get('/check-approval-status', async (req, res) => {
     res.status(500).json({ success: false, message: 'Failed to fetch approval status' });
   }
 });
+
 
 
 // Start server

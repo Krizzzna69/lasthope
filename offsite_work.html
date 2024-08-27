@@ -148,7 +148,14 @@
     }
 
     function checkApprovalStatus() {
-     // Assuming you're storing the username in localStorage
+    // Fetch the username from local storage
+    const username = localStorage.getItem('username');
+    
+    if (!username) {
+        document.getElementById('errorMessage').textContent = 'Username not found';
+        return;
+    }
+
     fetch(`https://lasthope-khuj.onrender.com/check-approval-status?username=${username}`)
         .then(response => {
             if (!response.ok) {
