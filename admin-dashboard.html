@@ -65,7 +65,7 @@
 
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        fetch('/admin/offsite-requests')
+        fetch('https://lasthope-khuj.onrender.com/admin/offsite-requests')
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
@@ -93,7 +93,7 @@
     });
 
     function updateRequestStatus(username, requestId, isApproved) {
-        fetch('/admin/approve-request', {
+        fetch('https://lasthope-khuj.onrender.com/admin/approve-request', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
