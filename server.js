@@ -23,8 +23,13 @@ const offsiteRequestSchema = new mongoose.Schema({
   leavingTime: { type: Date, required: true },
   location: { type: String, required: true },
   submittedAt: { type: Date, default: Date.now },
-  isApproved: { type: Boolean, default: null } // null = pending, true = approved, false = disapproved
+  isApproved: { type: Boolean, default: null }, // null = pending, true = approved, false = disapproved
+  currentLocation: {
+      lat: Number,
+      lon: Number
+  } // New field to store the current location
 });
+
 const userSchema = new mongoose.Schema({
   username: String,
   password: String,
@@ -337,6 +342,20 @@ app.post('/offsite-request', async (req, res) => {
       console.error('Error:', error);
       res.status(500).json({ success: false, message: 'Server error' });
   }
+});
+
+app.get('/check-approval-status', (req, res) => {
+  const { username } = req.query;
+
+  OffsiteRequest.findOne({ username, isApproved: true }, (err, request) => {
+      if (err) {
+          return res.status(500).json({ success: false, message: 'Server error' });
+      }
+      if (request) {
+          return res.json({ success: true, isApproved: true });
+      }
+      return res.json({ success: true, isApproved: false });
+  });
 });
 
 // Start server
