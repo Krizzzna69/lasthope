@@ -8,113 +8,110 @@
         body {
             font-family: Arial, sans-serif;
             background-color: #f4f4f4;
-            margin: 0;
-            padding: 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
+            padding: 20px;
         }
 
-        h2 {
-            text-align: center;
-            color: #4CAF50;
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
         }
 
-        #user-list {
-            width: 80%;
-            max-width: 900px;
-            margin: 0 auto;
+        th, td {
+            padding: 10px;
+            border: 1px solid #ddd;
+            text-align: left;
         }
 
-        .user {
-            background-color: #fff;
-            padding: 15px;
-            border-radius: 8px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-            margin-bottom: 10px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+        th {
+            background-color: #f2f2f2;
         }
 
-        .user p {
-            margin: 0;
-        }
-
-        button {
-            padding: 8px 16px;
-            margin: 0 5px;
+        .btn {
+            padding: 5px 10px;
+            color: white;
             border: none;
-            border-radius: 5px;
+            border-radius: 4px;
             cursor: pointer;
-            font-size: 14px;
-            transition: background-color 0.3s ease;
         }
 
-        .approve {
+        .btn-approve {
             background-color: #4CAF50;
-            color: white;
         }
 
-        .disapprove {
+        .btn-disapprove {
             background-color: #f44336;
-            color: white;
-        }
-
-        button:hover {
-            opacity: 0.8;
-        }
-
-        .user-location {
-            font-size: 14px;
-            color: #555;
         }
     </style>
 </head>
 <body>
-    <div id="user-list">
-        <h2>Approve Users</h2>
-        <!-- Users will be populated here -->
-    </div>
 
-    <script>
-        // Fetch users and display them with approval buttons
-        fetch('https://lasthope-khuj.onrender.com/admin/get-users')
-            .then(response => response.json())
-            .then(users => {
-                const userList = document.getElementById('user-list');
-                users.forEach(user => {
-                    const userDiv = document.createElement('div');
-                    userDiv.className = 'user';
-                    userDiv.innerHTML = `
-                        <div>
-                            <p><strong>${user.username}</strong></p>
-                            <p>Approved: ${user.isApproved ? 'Yes' : 'No'}</p>
-                            <p class="user-location">Location: ${user.location ? `${user.location.lat}, ${user.location.lon}` : 'N/A'}</p>
-                        </div>
-                        <div>
-                            <button class="approve" onclick="approveUser('${user.username}', true)">Approve</button>
-                            <button class="disapprove" onclick="approveUser('${user.username}', false)">Disapprove</button>
-                        </div>
-                    `;
-                    userList.appendChild(userDiv);
-                });
-            })
-            .catch(error => console.error('Error fetching users:', error));
+<h2>Admin Dashboard - Offsite Work Requests</h2>
+<table>
+    <thead>
+        <tr>
+            <th>Username</th>
+            <th>From Time</th>
+            <th>To Time</th>
+            <th>Location</th>
+            <th>Status</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody id="requestsTable">
+        <!-- Requests will be dynamically added here -->
+    </tbody>
+</table>
 
-        function approveUser(username, approve) {
-            fetch('https://lasthope-khuj.onrender.com/admin/approve-user', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ username, approve }),
-            })
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        fetch('/admin/offsite-requests')
             .then(response => response.json())
-            .then(data => alert(data.message))
-            .catch(error => console.error('Error approving user:', error));
-        }
-    </script>
+            .then(data => {
+                if (data.success) {
+                    const requestsTable = document.getElementById('requestsTable');
+                    data.requests.forEach(request => {
+                        const row = document.createElement('tr');
+                        row.innerHTML = `
+                            <td>${request.username}</td>
+                            <td>${new Date(request.fromTime).toLocaleString()}</td>
+                            <td>${new Date(request.leavingTime).toLocaleString()}</td>
+                            <td>${request.location}</td>
+                            <td>${request.isApproved === null ? 'Pending' : request.isApproved ? 'Approved' : 'Disapproved'}</td>
+                            <td>
+                                <button class="btn btn-approve" onclick="updateRequestStatus('${request.username}', '${request.requestId}', true)">Approve</button>
+                                <button class="btn btn-disapprove" onclick="updateRequestStatus('${request.username}', '${request.requestId}', false)">Disapprove</button>
+                            </td>
+                        `;
+                        requestsTable.appendChild(row);
+                    });
+                } else {
+                    alert('Failed to load requests');
+                }
+            })
+            .catch(error => console.error('Error:', error));
+    });
+
+    function updateRequestStatus(username, requestId, isApproved) {
+        fetch('/admin/approve-request', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ username, requestId, isApproved }),
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('Request status updated successfully');
+                location.reload(); // Reload the page to reflect changes
+            } else {
+                alert('Failed to update request status');
+            }
+        })
+        .catch(error => console.error('Error:', error));
+    }
+</script>
+
 </body>
 </html>

@@ -18,6 +18,13 @@ mongoose.connect(mongoDBUri, { useNewUrlParser: true, useUnifiedTopology: true }
   .catch(err => console.error('MongoDB connection error:', err));
 
 // Define a User schema with location and approval fields
+const offsiteRequestSchema = new mongoose.Schema({
+  fromTime: { type: Date, required: true },
+  leavingTime: { type: Date, required: true },
+  location: { type: String, required: true },
+  submittedAt: { type: Date, default: Date.now },
+  isApproved: { type: Boolean, default: null } // null = pending, true = approved, false = disapproved
+});
 const userSchema = new mongoose.Schema({
   username: String,
   password: String,
@@ -29,12 +36,9 @@ const userSchema = new mongoose.Schema({
   totalWorkingHours: { type: Number, default: 0 },
   lastCheckInDate: String,
   isApproved: { type: Boolean, default: false }, // New field to track admin approval status
-  location: {
-    lat: Number,
-    lon: Number
-  }
+  location: String,
+  offsiteRequests: [offsiteRequestSchema] // New field for offsite work requests
 });
-
 const User = mongoose.model('User', userSchema);
 
 // Admin credentials
@@ -100,31 +104,53 @@ app.get('/admin/dashboard', async (req, res) => {
 });
 
 // Get all users for admin
-app.get('/admin/get-users', async (req, res) => {
+app.get('/admin/offsite-requests', async (req, res) => {
   try {
-    const users = await User.find({}, 'username isApproved location'); // Include location in the response
-    res.json(users);
+      const users = await User.find({ 'offsiteRequests.0': { $exists: true } });
+
+      const requests = users.map(user => {
+          return user.offsiteRequests.map(request => ({
+              username: user.username,
+              fromTime: request.fromTime,
+              leavingTime: request.leavingTime,
+              location: request.location,
+              isApproved: request.isApproved,
+              requestId: request._id
+          }));
+      }).flat();
+
+      res.json({ success: true, requests });
   } catch (error) {
-    res.status(500).json({ success: false, message: 'Server error' });
+      console.error('Error:', error);
+      res.status(500).json({ success: false, message: 'Server error' });
   }
 });
 
+
 // Approve or disapprove a user
-app.post('/admin/approve-user', async (req, res) => {
-  const { username, isApproved } = req.body;
-
+app.post('/admin/approve-request', async (req, res) => {
   try {
-    const user = await User.findOne({ username });
-    if (!user) {
-      return res.json({ success: false, message: 'User not found' });
-    }
+      const { username, requestId, isApproved } = req.body;
 
-    user.isApproved = isApproved;
-    await user.save();
+      const user = await User.findOne({ username });
 
-    res.json({ success: true, message: `User ${isApproved ? 'approved' : 'disapproved'} successfully` });
+      if (!user) {
+          return res.status(404).json({ success: false, message: 'User not found' });
+      }
+
+      const request = user.offsiteRequests.id(requestId);
+
+      if (!request) {
+          return res.status(404).json({ success: false, message: 'Request not found' });
+      }
+
+      request.isApproved = isApproved;
+      await user.save();
+
+      res.json({ success: true, message: 'Request status updated successfully' });
   } catch (error) {
-    res.status(500).json({ success: false, message: 'Server error' });
+      console.error('Error:', error);
+      res.status(500).json({ success: false, message: 'Server error' });
   }
 });
 
@@ -282,6 +308,34 @@ app.get('/get-attendance', async (req, res) => {
     }
   } catch (error) {
     res.status(500).json({ success: false, message: 'Server error' });
+  }
+});
+
+app.post('/offsite-request', async (req, res) => {
+  try {
+      const { username, fromTime, leavingTime, location } = req.body;
+
+      // Find the user by username
+      const user = await User.findOne({ username });
+
+      if (!user) {
+          return res.status(404).json({ success: false, message: 'User not found' });
+      }
+
+      // Add the offsite request to the user's offsiteRequests array
+      user.offsiteRequests.push({
+          fromTime: new Date(fromTime),
+          leavingTime: new Date(leavingTime),
+          location
+      });
+
+      // Save the updated user document
+      await user.save();
+
+      res.json({ success: true, message: 'Offsite work request submitted successfully' });
+  } catch (error) {
+      console.error('Error:', error);
+      res.status(500).json({ success: false, message: 'Server error' });
   }
 });
 
