@@ -111,36 +111,24 @@ app.get('/admin/dashboard', async (req, res) => {
 // Get all users for admin
 app.post('/offsite-request', async (req, res) => {
   try {
-    const { fromTime, leavingTime, location, username, currentLocation } = req.body;
+    const { fromTime, leavingTime, location, currentLocation, username } = req.body;
 
-    if (!fromTime || !leavingTime || !location || !username) {
-      return res.status(400).json({ success: false, message: 'All fields are required' });
+    if (!username) {
+      return res.status(400).json({ success: false, message: 'Username is required' });
     }
 
-    // Find the user by username
-    const user = await User.findOne({ username });
-
-    if (!user) {
-      return res.status(404).json({ success: false, message: 'User not found' });
-    }
-
-    // Create a new offsite request
     const offsiteRequest = new OffsiteRequest({
+      username,
       fromTime,
       leavingTime,
       location,
-      currentLocation,
-      isApproved: null // Pending by default
+      currentLocation
     });
 
-    // Save the offsite request and update the user's offsiteRequests
     await offsiteRequest.save();
-    user.offsiteRequests.push(offsiteRequest);
-    await user.save();
-
-    res.status(201).json({ success: true, message: 'Offsite request submitted successfully' });
+    res.status(200).json({ success: true, message: 'Offsite work request submitted successfully!' });
   } catch (error) {
-    console.error('Error submitting offsite request:', error);
+    console.error('Error saving offsite request:', error);
     res.status(500).json({ success: false, message: 'Failed to submit offsite request' });
   }
 });
