@@ -18,8 +18,7 @@ mongoose.connect(mongoDBUri, { useNewUrlParser: true, useUnifiedTopology: true }
   .catch(err => console.error('MongoDB connection error:', err));
 
 // Define a User schema with location and approval fields
-const offsiteRequestSchema = new mongoose.Schema({
-  username: { type: String, required: true },  // Added field to associate request with a user
+const offsiteRequestSchema = new Schema({
   fromTime: { type: Date, required: true },
   leavingTime: { type: Date, required: true },
   location: { type: String, required: true },
@@ -28,12 +27,13 @@ const offsiteRequestSchema = new mongoose.Schema({
   currentLocation: {
     lat: Number,
     lon: Number
-  } // New field to store the current location
+  }
 });
 
 const OffsiteRequest = mongoose.model('OffsiteRequest', offsiteRequestSchema);
 
-const userSchema = new mongoose.Schema({
+// Define the User schema
+const userSchema = new Schema({
   username: String,
   password: String,
   attendance: { type: Number, default: 0 },
@@ -45,10 +45,12 @@ const userSchema = new mongoose.Schema({
   lastCheckInDate: String,
   isApproved: { type: Boolean, default: false },
   location: String,
-  offsiteRequests: [{ type: Schema.Types.ObjectId, ref: 'OffsiteRequest' }] // Ensure this field exists
+  offsiteRequests: [{ type: Schema.Types.ObjectId, ref: 'OffsiteRequest' }]
 });
 
 const User = mongoose.model('User', userSchema);
+
+module.exports = { User, OffsiteRequest };
 
 // Admin credentials
 const adminCredentials = {
