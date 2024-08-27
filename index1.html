@@ -125,6 +125,8 @@
 
     <script>
         let map, infoWindow, regionCircle, hasMarkedAttendance = false;
+        let hasPunchedOut = false;
+
         let username = ''; // Store the username after login
         const blueDotIcon = 'https://img.icons8.com/material-rounded/24/000000/marker.png'; // Replace with your blue dot URL
         function initMap() {
@@ -180,7 +182,7 @@
         console.log('User is within region, marking attendance.');
         showAttendanceMarkedPopup();
         hasMarkedAttendance = true;
-        let hasPunchedOut = true;
+        
         punchIn(); // Punch in here
     }
 } else {
