@@ -175,18 +175,24 @@ app.post('/punch-in', async (req, res) => {
     // Ensure the user is within the geofence if necessary
 
 
-    const now = new Date();
-    const formattedDateTime = now.toDateString() + ' ' + now.toTimeString().split(' ')[0];
+    // Get the current time in UTC and convert to IST
+const now = new Date();
+const istOffset = 5.5 * 60 * 60 * 1000; // IST is UTC + 5:30
+const istTime = new Date(now.getTime() + istOffset);
 
-    const todayDate = now.toISOString().split('T')[0];
+// Format the IST time
+const formattedDateTime = istTime.toDateString() + ' ' + istTime.toTimeString().split(' ')[0];
 
-    if (user.lastCheckInDate !== todayDate) {
-      user.firstCheckInTime = formattedDateTime;
-      user.lastCheckOutTime = null;
-      user.lastCheckInDate = todayDate;
-    }
+// Get today's date in ISO format adjusted for IST
+const todayDate = istTime.toISOString().split('T')[0];
 
-    user.punchInTime = formattedDateTime;
+if (user.lastCheckInDate !== todayDate) {
+  user.firstCheckInTime = formattedDateTime;
+  user.lastCheckOutTime = null;
+  user.lastCheckInDate = todayDate;
+}
+
+user.punchInTime = formattedDateTime;
     await user.save();
 
     res.json({ 
@@ -218,16 +224,23 @@ app.post('/punch-out', async (req, res) => {
     }
 
     const now = new Date();
-    const formattedDateTime = now.toDateString() + ' ' + now.toTimeString().split(' ')[0];
-
+    const istOffset = 5.5 * 60 * 60 * 1000; // IST is UTC + 5:30
+    const istTime = new Date(now.getTime() + istOffset);
+    
+    // Format the IST time
+    const formattedDateTime = istTime.toDateString() + ' ' + istTime.toTimeString().split(' ')[0];
+    
+    // Set punchOutTime and lastCheckOutTime
     user.punchOutTime = formattedDateTime;
     user.lastCheckOutTime = formattedDateTime;
-
+    
+    // Calculate worked time in seconds
     const punchInDate = new Date(user.punchInTime);
-    const workedTimeInSeconds = (now.getTime() - punchInDate.getTime()) / 1000;
+    const punchInIST = new Date(punchInDate.getTime() + istOffset); // Adjust punchInTime to IST
+    const workedTimeInSeconds = (istTime.getTime() - punchInIST.getTime()) / 1000;
+    
+    // Update totalWorkingHours
     user.totalWorkingHours += workedTimeInSeconds;
-
-    user.punchInTime = null;
     await user.save();
 
     res.json({ 
