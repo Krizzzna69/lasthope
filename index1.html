@@ -97,8 +97,7 @@
         
     </div>
     <div id="footer">
-        <button class="action-button" id='checkInButton' onclick="punchIn()">Check In</button>
-        <button class="action-button" id='checkOutButton' onclick="punchOut()">Check Out</button>
+        
         <button id="myActivityButton" onclick="toggleTable()">My Activity</button>
         <button id="hideMapButton" onclick="toggleMap()">Hide Map</button>
     </div>
@@ -307,20 +306,13 @@
             }
         }
         function setWorkMode(mode) {
-            const checkInButton = document.getElementById('checkInButton');
-            const checkOutButton = document.getElementById('checkOutButton');
-            console.log(checkInButton,checkOutButton);
+            
             
             if (mode == 'offsite') {
-                checkInButton.style.display = 'block';
-                checkOutButton.style.display = 'block';
+                
                 window.location.href = 'offsite_work.html'
-                alert("You have selected Offsite Work. Check In/Out buttons are visible.");
-            } else if (mode == 'onsite') {
-                checkInButton.style.display = 'none';
-                checkOutButton.style.display = 'none';
-                alert("You have selected Onsite Work. Check In/Out buttons are hidden.");
-            }
+                alert("You are being redirected to offsite page");
+            } 
         }
         function toggleMap() {
             const mapDiv = document.getElementById('map');
