@@ -141,20 +141,32 @@
             });
         }
     }
-
     function checkApprovalStatus() {
-    const username = localStorage.getItem('username'); // Assuming you're storing the username in localStorage
+    const username = localStorage.getItem('username');
+
     fetch(`https://lasthope-khuj.onrender.com/check-approval-status?username=${username}`)
-        .then(response => response.json())
+        .then(response => {
+            if (!response.ok) {
+                return response.text().then(text => {
+                    throw new Error(`HTTP error! status: ${response.status} - ${text}`);
+                });
+            }
+            return response.json();
+        })
         .then(data => {
             if (data.isApproved) {
                 document.getElementById('approvalSection').style.display = 'block';
                 initMap();
-                clearInterval(approvalCheckInterval); // Stop checking once approved
+                clearInterval(approvalCheckInterval);
             }
         })
-        .catch(error => console.error('Error:', error));
+        .catch(error => {
+            console.error('Error:', error);
+            document.getElementById('errorMessage').textContent = `Error: ${error.message}`;
+        });
 }
+
+
 
 // Check approval status every 10 seconds (10000 milliseconds)
 const approvalCheckInterval = setInterval(checkApprovalStatus, 10000);
