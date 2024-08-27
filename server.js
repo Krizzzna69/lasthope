@@ -3,6 +3,7 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 const bodyParser = require('body-parser');
 
+let present = false;
 // Initialize express app
 const app = express();
 const port = 5000;
@@ -198,13 +199,17 @@ app.post('/update-attendance', async (req, res) => {
 
 // Punch In endpoint
 app.post('/punch-in', async (req, res) => {
-  const { username, isInGeofence } = req.body;
-
+  const { username} = req.body;
+  
   try {
     const user = await User.findOne({ username });
     if (!user) {
       return res.status(400).json({ success: false, message: 'User not found' });
     }
+    if (user.lastCheckInDate != today) {
+      user.attendance += 1;
+      return res.status(400).json({ success: false, message: 'Already punched in today' });
+  }
 
     // Ensure the user is within the geofence if necessary
 
