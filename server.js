@@ -111,28 +111,25 @@ app.get('/admin/dashboard', async (req, res) => {
 
 app.get('/admin/offsite-requests', async (req, res) => {
   try {
-    // Fetch users who have offsiteRequests
-    const users = await User.find({ 'offsiteRequests.0': { $exists: true } }).populate('offsiteRequests');
+    // Fetch all offsite requests
+    const requests = await OffsiteRequest.find();
 
-    // Flatten and map the requests
-    const requests = users.flatMap(user => 
-      user.offsiteRequests.map(request => ({
-        username: user.username,
-        fromTime: request.fromTime,
-        leavingTime: request.leavingTime,
-        location: request.location,
-        isApproved: request.isApproved,
-        requestId: request._id
-      }))
-    );
+    const formattedRequests = requests.map(request => ({
+      username: request.username,
+      fromTime: request.fromTime,
+      leavingTime: request.leavingTime,
+      location: request.location,
+      currentLocation: request.currentLocation,
+      isApproved: request.isApproved,
+      requestId: request._id
+    }));
 
-    res.json({ success: true, requests });
+    res.json({ success: true, requests: formattedRequests });
   } catch (error) {
     console.error('Error:', error);
     res.status(500).json({ success: false, message: 'Server error' });
   }
 });
-
 
 
 // Approve or disapprove a user
