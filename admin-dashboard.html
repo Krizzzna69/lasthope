@@ -64,6 +64,7 @@
 </table>
 
 <script>
+    const username = localStorage.getItem('username');
     function updateRequestStatus(username, requestId, isApproved) {
         fetch('https://lasthope-khuj.onrender.com/admin/approve-request', {
             method: 'POST',
